@@ -2,14 +2,15 @@ import qualified Data.Sequence as S (Seq, replicate, length, replicate,
                                         adjust, index, update)
 import Data.Sequence ((><))
 import Data.Char (chr, ord)
-import Data.Int
+import Data.Int (Int8)
+import Control.Monad (void)
+import System.IO (isEOF)
 
 main :: IO ()
 main = do
     source <- readFile "source.bf"
     let s = State byteArray 0 source source
-    _ <- parse s
-    return ()
+    parse' s
 
 data State = State {
     memory :: S.Seq Int8,
@@ -18,10 +19,25 @@ data State = State {
     nonConsumedInput :: String
 }
 
---our memory array
+--our memory array, it is 8 bit, and starts with 30,000 cells
 byteArray :: S.Seq Int8
 byteArray = S.replicate 30000 0
 
+{-
+we don't need a state returned in main, so this wrapper function is used
+to make main a tad cleaner
+-}
+parse' :: State -> IO ()
+parse' s = void $ parse s
+
+{-
+parse input while it still remains. if it's a non brainfuck character we have
+to ignore it. the update function takes care of incrementing the
+nonConsumedInput, so the few functions which don't call go, need to call that
+themeselves. We are careful to leave our nonConsumedInput on the [ or ]
+characters while starting and stopping loops, as it is incremented after this 
+function is called, putting the pointer at the character following the bracket
+-}
 parse :: State -> IO State
 parse s
     | null $ nonConsumedInput s = return s
@@ -52,7 +68,10 @@ incrementPointer s@(State m p _ _)
     | otherwise = s { pointer = p + 1, memory = newmem }
     where newmem = m >< S.replicate 1000 0
 
-
+{-
+we could potentially expand the array to the left, but it would be illogical
+for the instruction pointer to go below zero, so I don't.
+-}
 decrementPointer :: State -> State
 decrementPointer s@(State _ p _ _)
     | pointer s > 0 = s { pointer = p - 1 }
@@ -71,17 +90,29 @@ printValue (State m p _ _) = putChar $ chr $ fromIntegral $ S.index m p
 
 getCharacter :: State -> IO State
 getCharacter s@(State m p _ _) = do
-    c <- fromIntegral . ord <$> getChar
-    let newMem = S.update p c m
-    return $ s { memory = newMem }
+    end <- isEOF
+    if end then return s else do
+        c <- fromIntegral . ord <$> getChar
+        let newMem = S.update p c m
+        return $ s { memory = newMem }
 
+{-
+we use tail here so the first [ gets chopped off. Otherwise, the counter will
+be incorrectly incremented
+-}
 startLoop :: State -> State
 startLoop s@(State m p _ n)
     | S.index m p == 0 = s { nonConsumedInput = nextBracket (tail n) 0 }
     | otherwise = s
 
+{-
+to handle nested brackets while looping, each time we encounter a [, we 
+increment our count by 1. If we meet a ] and the counter is not 0, then we 
+have more layers of nesting to leave. If we get to the end of the input
+then the programmer must have made a mistake so we throw an error.
+-}
 nextBracket :: String -> Int -> String
-nextBracket [] _ = error "Mismatched ["
+nextBracket [] _ = error "Mismatched [ error"
 nextBracket z@(x:xs) count
     | x == ']' && count == 0 = z
     | x == ']' = nextBracket xs (pred count)
@@ -93,16 +124,23 @@ endLoop s@(State m p _ _)
     | S.index m p /= 0 = previousBracket s
     | otherwise = s
 
+{-
+we reverse the input before the nonconsumedinput as we need to search backwards
+and this makes it a lot easier.
+-}
 previousBracket :: State -> State
-previousBracket s@(State _ _ t n) = s { nonConsumedInput = find search n 0 }
+previousBracket s = s { nonConsumedInput = find search n 0 }
     where search = reverse $ take (length t - length n) t
-          find [] _ _ = error "Mismatched ]"
+          find [] _ _ = error "Mismatched ] error"
           find (x:xs) acc count
             | x == '[' && count == 0 = x : acc
             | x == '[' = find xs (x:acc) (pred count)
             | x == ']' = find xs (x:acc) (succ count)
             | otherwise = find xs (x:acc) count
+          t = totalInput s
+          n = nonConsumedInput s
 
+--remove one character from the nonconsumedinput - it has just been parsed.
 update :: State -> State
 update s@(State _ _ _ n)
     | null n = s
