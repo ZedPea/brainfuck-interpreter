@@ -1,4 +1,6 @@
-import qualified Data.Sequence as S
+import qualified Data.Sequence as S (Seq, replicate, length, replicate,
+                                        adjust, index, update)
+import Data.Sequence ((><))
 import Data.Char (chr, ord)
 import Data.Int
 
@@ -18,7 +20,7 @@ data State = State {
 
 --our memory array
 byteArray :: S.Seq Int8
-byteArray = S.replicate 10000 0
+byteArray = S.replicate 30000 0
 
 parse :: State -> IO State
 parse s
@@ -40,10 +42,16 @@ parse s
           go f = let updatedState = f s
                  in parse (update updatedState)
 
+{-
+if we have the space, just increment the pointer. Otherwise, add 1000 more
+cells to memory
+-}
 incrementPointer :: State -> State
-incrementPointer s@(State _ p _ _)
-    | pointer s < 9999 = s { pointer = p + 1 }
-    | otherwise = error "Out of memory error"
+incrementPointer s@(State m p _ _)
+    | pointer s < S.length m = s { pointer = p + 1 }
+    | otherwise = s { pointer = p + 1, memory = newmem }
+    where newmem = m >< S.replicate 1000 0
+
 
 decrementPointer :: State -> State
 decrementPointer s@(State _ p _ _)
