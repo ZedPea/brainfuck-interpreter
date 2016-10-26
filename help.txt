@@ -1,0 +1,28 @@
+~~~~brainfuck-interpreter~~~~
+
+A simple brainfuck interpreter written in Haskell.
+
+Invoking the program without any flags will run the program in interpreting mode.
+
+In this mode, you can enter a program on a single line and it will run immediately.
+
+Programs cannot be spread across lines in this mode. Use a file for longer programs.
+
+Hit enter to run the line you just entered.
+
+Note: state is not saved across lines, so you can't enter a long program line by line.
+
+## Flags:
+
+#### -f / --file
+Specify a file to run the interpreter on.
+
+Usage: `./brainfuck-interpreter --file "helloworld.bf"`
+
+This will run the interpreter on the file helloworld.bf, if it is present.
+If it isn't, the program will run in interpreting mode.
+
+#### -h / --help
+Output this help message.
+
+Usage: `./brainfuck-interpreter --help
