@@ -1,5 +1,6 @@
 import qualified Data.Sequence as S
 import Data.Char (chr, ord)
+import Data.Int
 
 main :: IO ()
 main = do
@@ -9,14 +10,14 @@ main = do
     return ()
 
 data State = State {
-    memory :: S.Seq Int,
+    memory :: S.Seq Int8,
     pointer :: Int,
     totalInput :: String,
     nonConsumedInput :: String
 }
 
 --our memory array
-byteArray :: S.Seq Int
+byteArray :: S.Seq Int8
 byteArray = S.replicate 10000 0
 
 parse :: State -> IO State
@@ -58,17 +59,17 @@ decrementValue s@(State m _ _ _) = let newMem = S.adjust pred (pointer s) m
                                    in s { memory = newMem }
 
 printValue :: State -> IO ()
-printValue (State m p _ _) = putChar $ chr $ S.index m p
+printValue (State m p _ _) = putChar $ chr $ fromIntegral $ S.index m p
 
 getCharacter :: State -> IO State
 getCharacter s@(State m p _ _) = do
-    c <- ord <$> getChar
-    let newMem = S.update c p m
+    c <- fromIntegral . ord <$> getChar
+    let newMem = S.update p c m
     return $ s { memory = newMem }
 
 startLoop :: State -> State
 startLoop s@(State m p _ n)
-    | S.index m p == 0 = s { nonConsumedInput = nextBracket (tail n) 0}
+    | S.index m p == 0 = s { nonConsumedInput = nextBracket (tail n) 0 }
     | otherwise = s
 
 nextBracket :: String -> Int -> String
@@ -85,7 +86,7 @@ endLoop s@(State m p _ _)
     | otherwise = s
 
 previousBracket :: State -> State
-previousBracket s@(State _ _ t n) = s { nonConsumedInput = find search n 0}
+previousBracket s@(State _ _ t n) = s { nonConsumedInput = find search n 0 }
     where search = reverse $ take (length t - length n) t
           find [] _ _ = error "Mismatched ]"
           find (x:xs) acc count
