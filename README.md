@@ -22,6 +22,11 @@ Usage: `./brainfuck-interpreter --file "helloworld.bf"`
 This will run the interpreter on the file helloworld.bf, if it is present.
 If it isn't, the program will run in interpreting mode.
 
+#### -h / --help
+Output a help message.
+
+Usage: `./brainfuck-interpreter --help`
+
 ## Installation:
 
 #### Clone the repository
