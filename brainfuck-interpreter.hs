@@ -66,13 +66,18 @@ getCharacter s@(State m p _ _) = do
     let newMem = S.update c p m
     return $ s { memory = newMem }
 
--- if value at pointer == 0, go to closing bracket
--- else keep parsing
 startLoop :: State -> State
 startLoop s@(State m p _ n)
-    | S.index m p == 0 = s { nonConsumedInput = nextBracket }
+    | S.index m p == 0 = s { nonConsumedInput = nextBracket (tail n) 0}
     | otherwise = s
-    where nextBracket = dropWhile (/= ']') n
+
+nextBracket :: String -> Int -> String
+nextBracket [] _ = error "Mismatched ["
+nextBracket z@(x:xs) count
+    | x == ']' && count == 0 = z
+    | x == ']' = nextBracket xs (pred count)
+    | x == '[' = nextBracket xs (succ count)
+    | otherwise = nextBracket xs count
 
 endLoop :: State -> State
 endLoop s@(State m p _ _)
@@ -80,12 +85,14 @@ endLoop s@(State m p _ _)
     | otherwise = s
 
 previousBracket :: State -> State
-previousBracket s@(State _ _ t n) = s { nonConsumedInput = find search n }
+previousBracket s@(State _ _ t n) = s { nonConsumedInput = find search n 0}
     where search = reverse $ take (length t - length n) t
-          find [] _ = error "ya dun goofed"
-          find (x:xs) acc
-            | x == '[' = x : acc
-            | otherwise = find xs (x : acc)
+          find [] _ _ = error "Mismatched ]"
+          find (x:xs) acc count
+            | x == '[' && count == 0 = x : acc
+            | x == '[' = find xs (x:acc) (pred count)
+            | x == ']' = find xs (x:acc) (succ count)
+            | otherwise = find xs (x:acc) count
 
 update :: State -> State
 update s@(State _ _ _ n)
