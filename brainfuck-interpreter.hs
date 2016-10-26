@@ -3,16 +3,15 @@ import qualified Data.Sequence as S (Seq, replicate, length, replicate,
 import Data.Sequence ((><))
 import Data.Char (chr, ord)
 import Data.Int (Int8)
-import Control.Monad (void, unless)
+import Control.Monad (void)
 import System.IO (isEOF, hFlush, stdout)
 import System.Environment (getArgs)
-import System.Directory (doesFileExist)
-import Data.Maybe (mapMaybe)
-import Data.List (elemIndex)
+import Utilities
 
 main :: IO ()
 main = do
     args <- getArgs
+    if any (`elem` helpFlags) args then help else do
     maybeFile <- getFile args
     case maybeFile of
         Nothing -> interpreter
@@ -155,33 +154,6 @@ update s@(State _ _ _ n)
     | null n = s
     | otherwise = s { nonConsumedInput = tail n }
 
-getFile :: [String] -> IO (Maybe FilePath)
-getFile args
-    | any (`elem` fileFlags) args = tryFile
-    | otherwise = def
-    where maybeFlag = getFlagValue args fileFlags
-          tryFile = maybe def foo maybeFlag
-          foo flag = do
-            exists <- doesFileExist flag
-            if exists then return (Just flag) else def
-          def = return Nothing
-
-{-
-Gets the value in the argument list following one of the tags specified in 
-flags if the flag exists in the argument list, and the argument list is
-long enough to get the next item in the argument list
--}
-getFlagValue :: [String] -> [String] -> Maybe String
-getFlagValue args flags
-    | flagExists && len > val = Just (args !! val)
-    | otherwise = Nothing
-    where len = length args
-          flagExists = any (`elem` flags) args
-          val = 1 + head (mapMaybe (`elemIndex` args) flags)
-
-fileFlags :: [String]
-fileFlags = ["--file","-f"]
-
 interpreter :: IO ()
 interpreter = do
     putStrLn ">>> Brainfuck interpreter (Ctrl+D to exit) <<<"
@@ -196,3 +168,6 @@ interpreter' = do
     input <- getLine
     parse' $ State byteArray 0 input input
     interpreter'
+
+help :: IO ()
+help = putStr =<< readFile "help.txt"
