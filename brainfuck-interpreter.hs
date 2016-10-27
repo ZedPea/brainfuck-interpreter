@@ -86,15 +86,18 @@ decrementPointer s@(State _ p _ _)
     | otherwise = error "Pointer lowered below zero error"
 
 incrementValue :: State -> State
-incrementValue s@(State m _ _ _) = let newMem = S.adjust succ (pointer s) m
+incrementValue s@(State m _ _ _) = let newMem = S.adjust (+1) (pointer s) m
                                    in s { memory = newMem }
 
 decrementValue :: State -> State
-decrementValue s@(State m _ _ _) = let newMem = S.adjust pred (pointer s) m
+decrementValue s@(State m _ _ _) = let newMem = S.adjust (\x -> x - 1) (pointer s) m
                                    in s { memory = newMem }
 
 printValue :: State -> IO ()
-printValue (State m p _ _) = putChar $ chr $ fromIntegral $ S.index m p
+printValue (State m p _ _)
+    | val >= 0 = putChar $ chr val
+    | otherwise = error "Value attempted to print is less than 0 error"
+    where val = fromIntegral $ S.index m p
 
 getCharacter :: State -> IO State
 getCharacter s@(State m p _ _) = do
@@ -123,8 +126,8 @@ nextBracket :: String -> Int -> String
 nextBracket [] _ = error "Mismatched [ error"
 nextBracket z@(x:xs) count
     | x == ']' && count == 0 = z
-    | x == ']' = nextBracket xs (pred count)
-    | x == '[' = nextBracket xs (succ count)
+    | x == ']' = nextBracket xs (count - 1)
+    | x == '[' = nextBracket xs (count + 1)
     | otherwise = nextBracket xs count
 
 endLoop :: State -> State
@@ -142,8 +145,8 @@ previousBracket s = s { nonConsumedInput = find search n 0 }
           find [] _ _ = error "Mismatched ] error"
           find (x:xs) acc count
             | x == '[' && count == 0 = x : acc
-            | x == '[' = find xs (x:acc) (pred count)
-            | x == ']' = find xs (x:acc) (succ count)
+            | x == '[' = find xs (x:acc) (count - 1)
+            | x == ']' = find xs (x:acc) (count + 1)
             | otherwise = find xs (x:acc) count
           t = totalInput s
           n = nonConsumedInput s
