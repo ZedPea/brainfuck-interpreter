@@ -39,7 +39,7 @@ Enter the directory which contains the brainfuck-interpreter.hs and run
 
 You will need ghc installed. I suggest downloading the haskell platform, which should be in your repositories.
 
-Note that some intermediate compile files will be left around, brainfuck-interpreter.hi and brainfuck-interpreter.o. You can delete these if you wish.
+Note that some intermediate compile files will be left around, brainfuck-interpreter.hi, brainfuck-interpreter.o, Utilities.hi, and Utilities.hi. You can delete these if you wish.
 
 #### Running the program
 Run
@@ -51,8 +51,5 @@ in the location where the executable got created.
 See the flags section to customize how you use the program.
 
 #### Windows installation
-The setup should be the same on windows. 
 
-I have not tested the program on windows. It may perform strangely due to how newlines are handled.
-
-Get the haskell platform here: https://www.haskell.org/platform/#windows
+The setup is the same on windows, note that Ctrl+Z is used to exit the interpreter rather than Ctrl+D as is standard.
