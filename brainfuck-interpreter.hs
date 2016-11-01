@@ -159,7 +159,7 @@ update s@(State _ _ _ n)
 
 interpreter :: IO ()
 interpreter = do
-    putStrLn ">>> Brainfuck interpreter (Ctrl+D to exit) <<<"
+    putStrLn ">>> Brainfuck interpreter (Ctrl+D to exit / Ctrl+Z on windows) <<<"
     interpreter'
     
 interpreter' :: IO ()
