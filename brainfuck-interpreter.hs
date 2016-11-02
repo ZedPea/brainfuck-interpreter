@@ -158,9 +158,9 @@ update s@(State _ _ _ n)
     | otherwise = s { nonConsumedInput = tail n }
 
 interpreter :: IO ()
-interpreter = do
-    putStrLn ">>> Brainfuck interpreter (Ctrl+D to exit / Ctrl+Z on windows) <<<"
-    interpreter'
+interpreter = putStrLn msg >> interpreter'
+    where msg = ">>> Brainfuck interpreter (Ctrl+D to exit \
+                \/ Ctrl+Z on windows) <<<"
     
 interpreter' :: IO ()
 interpreter' = do
