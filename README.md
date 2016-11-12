@@ -12,6 +12,8 @@ Hit enter to run the line you just entered.
 
 Note: state is not saved across lines, so you can't enter a long program line by line.
 
+Two sample programs are included, courtesy of Wikipedia, a commented hello world, and the same program on one line with no comments.
+
 ## Flags:
 
 #### -f / --file
