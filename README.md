@@ -19,7 +19,7 @@ Two sample programs are included, courtesy of Wikipedia, a commented hello world
 #### -f / --file
 Specify a file to run the interpreter on.
 
-Usage: `./brainfuck-interpreter --file=helloworld.bf
+Usage: `./brainfuck-interpreter --file=helloWorld.bf
 
 This will run the interpreter on the file helloworld.bf, if it is present.
 If it isn't, the program will run in interpreting mode.
