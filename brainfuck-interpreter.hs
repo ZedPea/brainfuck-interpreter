@@ -5,20 +5,18 @@ import Data.Char (chr, ord)
 import Data.Int (Int8)
 import Control.Monad (void)
 import System.IO (isEOF, hFlush, stdout)
-import System.Environment (getArgs)
-import Utilities
+import ParseArgs
+import System.Console.CmdArgs (cmdArgs)
+import System.Directory (doesFileExist)
 
 main :: IO ()
 main = do
-    args <- getArgs
-    if any (`elem` helpFlags) args then help else do
-    maybeFile <- getFile args
-    case maybeFile of
-        Nothing -> interpreter
-        Just file -> do
-        source <- readFile file
-        let s = State byteArray 0 source source
-        parse' s
+    args <- cmdArgs bf
+    exists <- doesFileExist (file args)
+    if exists then do
+        source <- readFile (file args)
+        parse' $ State byteArray 0 source source
+    else interpreter
 
 data State = State {
     memory :: S.Seq Int8,
@@ -90,7 +88,8 @@ incrementValue s@(State m _ _ _) = let newMem = S.adjust (+1) (pointer s) m
                                    in s { memory = newMem }
 
 decrementValue :: State -> State
-decrementValue s@(State m _ _ _) = let newMem = S.adjust (\x -> x - 1) (pointer s) m
+decrementValue s@(State m _ _ _) = let newMem = S.adjust (\x -> x - 1) 
+                                                (pointer s) m
                                    in s { memory = newMem }
 
 printValue :: State -> IO ()
@@ -171,6 +170,3 @@ interpreter' = do
     input <- getLine
     parse' $ State byteArray 0 input input
     interpreter'
-
-help :: IO ()
-help = putStr =<< readFile "help.txt"
