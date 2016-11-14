@@ -34,7 +34,7 @@ we don't need a state returned in main, so this wrapper function is used
 to make main a tad cleaner
 -}
 parse' :: State -> IO ()
-parse' s = void $ parse s
+parse' = void . parse
 
 {-
 parse input while it still remains. if it's a non brainfuck character we have
@@ -62,7 +62,7 @@ parse s
         _ -> parse $ update s
     where next = head $ nonConsumedInput s
           go f = let updatedState = f s
-                 in parse (update updatedState)
+                 in parse $ update updatedState
 
 {-
 if we have the space, just increment the pointer. Otherwise, add 1000 more
